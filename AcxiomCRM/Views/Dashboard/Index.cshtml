@@ -1,0 +1,387 @@
+@model AcxiomCRM.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = "Executive Dashboard";
+    Layout = "_Layout";
+}
+
+<!-- Dashboard Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">CRM Analytics Dashboard</h3>
+        <p class="text-secondary small mb-0">
+            Welcome back, <strong>@Model.UserName</strong>! Viewing data scoped for <strong>@Model.UserRole</strong>.
+        </p>
+    </div>
+    <div class="d-flex gap-2 mt-3 mt-md-0">
+        <a asp-controller="Leads" asp-action="Create" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-plus-circle"></i> New Lead
+        </a>
+        <a asp-controller="Opportunities" asp-action="Create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-plus-lg"></i> New Deal
+        </a>
+    </div>
+</div>
+
+<!-- 8 Core Metric Cards -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Total Customers -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Total Customers</div>
+                <div class="metric-value">@Model.TotalCustomers</div>
+                <div class="metric-sub"><i class="bi bi-person-check-fill text-success"></i> Active Accounts</div>
+            </div>
+            <div class="metric-icon-box icon-blue">
+                <i class="bi bi-people-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Total Leads -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Total Leads</div>
+                <div class="metric-value">@Model.TotalLeads</div>
+                <div class="metric-sub"><span class="badge bg-primary">@Model.OpenLeads Open</span></div>
+            </div>
+            <div class="metric-icon-box icon-purple">
+                <i class="bi bi-funnel-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Open Opportunities -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Open Opportunities</div>
+                <div class="metric-value">@Model.OpenOpportunities</div>
+                <div class="metric-sub"><span class="text-muted">Total: @Model.TotalOpportunities deals</span></div>
+            </div>
+            <div class="metric-icon-box icon-amber">
+                <i class="bi bi-briefcase-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Total Pipeline Value -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Total Pipeline Value</div>
+                <div class="metric-value text-primary">$@Model.TotalPipelineValue.ToString("N0")</div>
+                <div class="metric-sub fw-semibold text-secondary">
+                    Weighted: <span class="text-dark">$@Model.WeightedPipelineValue.ToString("N0")</span>
+                </div>
+            </div>
+            <div class="metric-icon-box icon-teal">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 5: Won Opportunities -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Won Opportunities</div>
+                <div class="metric-value text-success">@Model.WonOpportunities</div>
+                <div class="metric-sub text-success fw-bold">+$@Model.TotalWonRevenue.ToString("N0") Revenue</div>
+            </div>
+            <div class="metric-icon-box icon-green">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 6: Lost Opportunities -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Lost Opportunities</div>
+                <div class="metric-value text-danger">@Model.LostOpportunities</div>
+                <div class="metric-sub text-muted">Closed Disqualified</div>
+            </div>
+            <div class="metric-icon-box icon-red">
+                <i class="bi bi-x-circle-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 7: Open Leads -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">Open Leads</div>
+                <div class="metric-value text-warning">@Model.OpenLeads</div>
+                <div class="metric-sub text-muted">Awaiting Qualification</div>
+            </div>
+            <div class="metric-icon-box icon-amber">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 8: Total Deals Count -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-label">All Opportunities</div>
+                <div class="metric-value">@Model.TotalOpportunities</div>
+                <div class="metric-sub text-muted">Active & Closed Portfolio</div>
+            </div>
+            <div class="metric-icon-box icon-blue">
+                <i class="bi bi-folder2-open"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Chart.js Section -->
+<div class="row g-3 mb-4">
+    <!-- Chart 1: Lead Status Chart -->
+    <div class="col-lg-4">
+        <div class="crm-card h-100">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Lead Status Breakdown</span>
+            </div>
+            <div class="crm-card-body d-flex align-items-center justify-content-center" style="min-height: 280px;">
+                <canvas id="leadStatusChart" width="300" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Opportunity Pipeline Stage Chart -->
+    <div class="col-lg-4">
+        <div class="crm-card h-100">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-bar-chart-fill me-2 text-amber"></i>Pipeline by Stage ($)</span>
+            </div>
+            <div class="crm-card-body d-flex align-items-center justify-content-center" style="min-height: 280px;">
+                <canvas id="opportunityStageChart" width="320" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Monthly Sales Trend Chart -->
+    <div class="col-lg-4">
+        <div class="crm-card h-100">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Monthly Won Sales ($)</span>
+            </div>
+            <div class="crm-card-body d-flex align-items-center justify-content-center" style="min-height: 280px;">
+                <canvas id="monthlySalesChart" width="320" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Upcoming Follow-ups & Recent Activities -->
+<div class="row g-3">
+    <!-- Upcoming Follow-Ups List -->
+    <div class="col-lg-6">
+        <div class="crm-card h-100">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Upcoming Follow-Up Reminders</span>
+                <a asp-controller="FollowUps" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="crm-table table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Type</th>
+                            <th>Due Date</th>
+                            <th>Assigned</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.UpcomingFollowUps.Any())
+                        {
+                            foreach (var f in Model.UpcomingFollowUps)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">
+                                        @f.Subject
+                                        <div class="small text-muted">
+                                            @(f.Customer != null ? f.Customer.CustomerName : (f.Lead != null ? f.Lead.LeadName : ""))
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">@f.FollowUpType</span>
+                                    </td>
+                                    <td>
+                                        <span class="@(f.FollowUpDate.Date == DateTime.UtcNow.Date ? "text-danger fw-bold" : "text-muted")">
+                                            @f.FollowUpDate.ToString("MMM dd, yyyy")
+                                        </span>
+                                    </td>
+                                    <td><small>@(f.AssignedTo?.FullName ?? "-")</small></td>
+                                    <td>
+                                        <form asp-controller="FollowUps" asp-action="Complete" asp-route-id="@f.FollowUpId" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-success p-1" title="Mark Complete">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                        <a asp-controller="FollowUps" asp-action="Reschedule" asp-route-id="@f.FollowUpId" class="btn btn-sm btn-outline-secondary p-1 ms-1" title="Reschedule">
+                                            <i class="bi bi-calendar-event"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No upcoming follow-ups scheduled.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities Timeline -->
+    <div class="col-lg-6">
+        <div class="crm-card h-100">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-activity me-2 text-purple"></i>Recent Activities</span>
+                <a asp-controller="Activities" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">View All</a>
+            </div>
+            <div class="crm-card-body p-3">
+                @if (Model.RecentActivities.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var act in Model.RecentActivities)
+                        {
+                            <div class="list-group-item px-0 py-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.75rem;">
+                                            @act.ActivityType
+                                        </span>
+                                        <strong class="text-dark" style="font-size: 0.9rem;">@act.Subject</strong>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.78rem;">@act.ActivityDate.ToString("MMM dd, HH:mm")</small>
+                                </div>
+                                <div class="text-secondary small">
+                                    @(act.Description ?? "No description provided.")
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    By <strong>@(act.AssignedTo?.FullName ?? "User")</strong>
+                                    @(act.Customer != null ? $" • Customer: {act.Customer.CustomerName}" : "")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">No recent activity logged.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Data from Controller
+        const leadLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LeadStatusLabels));
+        const leadCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LeadStatusCounts));
+
+        const stageLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OpportunityStageLabels));
+        const stageValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OpportunityStageValues));
+
+        const salesLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlySalesLabels));
+        const salesValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlySalesValues));
+
+        // 1. Lead Status Doughnut Chart
+        new Chart(document.getElementById('leadStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: leadLabels,
+                datasets: [{
+                    data: leadCounts,
+                    backgroundColor: ['#3b82f6', '#0ea5e9', '#f59e0b', '#94a3b8', '#8b5cf6', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                }
+            }
+        });
+
+        // 2. Opportunity Stage Bar Chart
+        new Chart(document.getElementById('opportunityStageChart'), {
+            type: 'bar',
+            data: {
+                labels: stageLabels,
+                datasets: [{
+                    label: 'Pipeline Value ($)',
+                    data: stageValues,
+                    backgroundColor: ['#60a5fa', '#38bdf8', '#fbbf24', '#34d399', '#f87171'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(val) { return '$' + (val / 1000) + 'k'; }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // 3. Monthly Sales Line / Bar Chart
+        new Chart(document.getElementById('monthlySalesChart'), {
+            type: 'line',
+            data: {
+                labels: salesLabels,
+                datasets: [{
+                    label: 'Won Revenue ($)',
+                    data: salesValues,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#10b981'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(val) { return '$' + (val / 1000) + 'k'; }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    </script>
+}
+

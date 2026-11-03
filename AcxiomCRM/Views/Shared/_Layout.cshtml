@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AcxiomCRM Enterprise</title>
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- AcxiomCRM Custom Styles -->
+    <link rel="stylesheet" href="~/css/crm.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="crm-wrapper">
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            <partial name="_Sidebar" />
+        }
+
+        <div class="crm-main-content">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <partial name="_Navbar" />
+            }
+
+            <main class="crm-content">
+                <partial name="_Toast" />
+                @RenderBody()
+            </main>
+
+            <footer class="bg-white border-top py-3 px-4 text-muted d-flex flex-column flex-sm-row justify-content-between align-items-center" style="font-size: 0.82rem;">
+                <div>&copy; @DateTime.UtcNow.Year AcxiomCRM Enterprise Platform. All rights reserved.</div>
+                <div class="d-flex gap-3 mt-2 mt-sm-0">
+                    <span class="badge bg-light text-dark border">Version 1.0 (Production Quality)</span>
+                    <a href="/swagger" target="_blank" class="text-decoration-none text-muted"><i class="bi bi-code-slash"></i> API Specs</a>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Reusable Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title text-danger d-flex align-items-center gap-2" id="deleteModalTitle">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Confirm Action
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="mb-1">Are you sure you want to delete or deactivate <strong id="deleteRecordName" class="text-dark">this record</strong>?</p>
+                    <small class="text-muted">This operation will be recorded in the security audit log.</small>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post" action="">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Chart.js 3.9.1 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- AcxiomCRM Core JS -->
+    <script src="~/js/crm.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

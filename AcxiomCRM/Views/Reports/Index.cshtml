@@ -1,0 +1,387 @@
+@model AcxiomCRM.ViewModels.Reports.ReportContainerViewModel
+@using AcxiomCRM.Models.Enums
+@using AcxiomCRM.ViewModels.Reports
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_Layout";
+    var curType = Model.Filter.ReportType.ToLowerInvariant();
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">CRM Analytics & Reports</h3>
+        <p class="text-secondary small mb-0">@Model.Description</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="ExportCsv"
+           asp-route-reportType="@curType"
+           asp-route-fromDate="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")"
+           asp-route-toDate="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")"
+           asp-route-userId="@Model.Filter.UserId"
+           asp-route-status="@Model.Filter.Status"
+           asp-route-searchTerm="@Model.Filter.SearchTerm"
+           class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export to CSV
+        </a>
+    </div>
+</div>
+
+<!-- 8 Reports Navigation Tabs -->
+<div class="crm-card mb-4">
+    <div class="p-2 border-bottom bg-light">
+        <ul class="nav nav-pills gap-1 flex-wrap" style="font-size: 0.88rem;">
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "pipeline" ? "active" : "")" asp-action="Index" asp-route-reportType="pipeline">
+                    <i class="bi bi-bar-chart me-1"></i> Pipeline Stage
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "customer" ? "active" : "")" asp-action="Index" asp-route-reportType="customer">
+                    <i class="bi bi-people me-1"></i> Customers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "lead" ? "active" : "")" asp-action="Index" asp-route-reportType="lead">
+                    <i class="bi bi-funnel me-1"></i> Leads
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "opportunity" ? "active" : "")" asp-action="Index" asp-route-reportType="opportunity">
+                    <i class="bi bi-briefcase me-1"></i> Opportunities
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "conversion" ? "active" : "")" asp-action="Index" asp-route-reportType="conversion">
+                    <i class="bi bi-arrow-repeat me-1"></i> Lead Conversion
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "activity" ? "active" : "")" asp-action="Index" asp-route-reportType="activity">
+                    <i class="bi bi-list-task me-1"></i> Team Activity
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 @(curType == "followup" ? "active" : "")" asp-action="Index" asp-route-reportType="followup">
+                    <i class="bi bi-calendar-check me-1"></i> Follow-Ups
+                </a>
+            </li>
+            @if (User.IsInRole(UserRoles.Admin))
+            {
+                <li class="nav-item">
+                    <a class="nav-link py-1 px-3 @(curType == "audit" ? "active" : "")" asp-action="Index" asp-route-reportType="audit">
+                        <i class="bi bi-shield-check me-1"></i> Audit Compliance
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <!-- Filters Header -->
+    <div class="p-3 bg-white">
+        <form method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="reportType" value="@curType" />
+
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary">From Date</label>
+                <input type="date" name="fromDate" class="form-control form-control-sm" value="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary">To Date</label>
+                <input type="date" name="toDate" class="form-control form-control-sm" value="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary">Filter by Executive</label>
+                <select name="userId" class="form-select form-select-sm" asp-items="ViewBag.UsersList">
+                    <option value="">All Users</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-filter"></i> Apply Filters</button>
+                <a asp-action="Index" asp-route-reportType="@curType" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Table Container -->
+<div class="crm-card">
+    @if (curType == "pipeline" && Model.ReportData is List<PipelineReportRow> pipelineRows)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Pipeline Stage</th>
+                        <th>Opportunity Count</th>
+                        <th>Total Pipeline ($)</th>
+                        <th>Weighted Pipeline ($)</th>
+                        <th>% of Pipeline Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in pipelineRows)
+                    {
+                        <tr>
+                            <td class="fw-bold"><span class="badge bg-light text-dark border">@row.Stage</span></td>
+                            <td>@row.OpportunityCount deals</td>
+                            <td class="fw-bold text-dark">$@row.TotalAmount.ToString("N0")</td>
+                            <td class="fw-bold text-success">$@row.WeightedAmount.ToString("N0")</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
+                                        <div class="progress-bar bg-primary" style="width: @row.PercentageOfTotal%;"></div>
+                                    </div>
+                                    <small class="fw-semibold">@row.PercentageOfTotal%</small>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (curType == "customer" && Model.ReportData is PagedResult<CustomerReportRow> custData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Company</th>
+                        <th>Status</th>
+                        <th>Deals Count</th>
+                        <th>Total Value</th>
+                        <th>Assigned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in custData.Items)
+                    {
+                        <tr>
+                            <td><span class="badge bg-light text-dark border">@row.CustomerCode</span></td>
+                            <td class="fw-bold">@row.CustomerName</td>
+                            <td><small>@row.Email<br />@row.Phone</small></td>
+                            <td>@row.CompanyName</td>
+                            <td><span class="badge bg-light text-dark border">@row.Status</span></td>
+                            <td>@row.DealsCount deals</td>
+                            <td class="fw-bold text-primary">$@row.TotalDealsValue.ToString("N0")</td>
+                            <td><small>@row.AssignedTo</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pb-3"><partial name="_Pagination" model="custData" /></div>
+    }
+    else if (curType == "lead" && Model.ReportData is PagedResult<LeadReportRow> leadData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Lead</th>
+                        <th>Contact</th>
+                        <th>Company & Source</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Expected ($)</th>
+                        <th>Assigned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in leadData.Items)
+                    {
+                        <tr>
+                            <td><span class="badge bg-light text-dark border">@row.LeadCode</span></td>
+                            <td class="fw-bold">@row.LeadName</td>
+                            <td><small>@row.Email<br />@row.Phone</small></td>
+                            <td>@row.CompanyName <span class="badge bg-light text-secondary border">@row.Source</span></td>
+                            <td><span class="badge bg-primary">@row.Status</span></td>
+                            <td><span class="badge bg-light text-dark border">@row.Priority</span></td>
+                            <td class="fw-bold text-primary">$@row.ExpectedValue.ToString("N0")</td>
+                            <td><small>@row.AssignedTo</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pb-3"><partial name="_Pagination" model="leadData" /></div>
+    }
+    else if (curType == "opportunity" && Model.ReportData is PagedResult<OpportunityReportRow> oppData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Opportunity</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Stage</th>
+                        <th>Probability</th>
+                        <th>Weighted Value</th>
+                        <th>Expected Close</th>
+                        <th>Assigned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in oppData.Items)
+                    {
+                        <tr>
+                            <td class="fw-bold">@row.OpportunityName</td>
+                            <td>@row.CustomerName</td>
+                            <td class="fw-bold text-dark">$@row.Amount.ToString("N0")</td>
+                            <td><span class="badge bg-light text-dark border">@row.Stage</span></td>
+                            <td>@row.Probability%</td>
+                            <td class="fw-bold text-success">$@row.WeightedPipeline.ToString("N0")</td>
+                            <td><small class="text-muted">@row.ExpectedCloseDate.ToString("yyyy-MM-dd")</small></td>
+                            <td><small>@row.AssignedTo</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pb-3"><partial name="_Pagination" model="oppData" /></div>
+    }
+    else if (curType == "conversion" && Model.ReportData is PagedResult<LeadConversionReportRow> convData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Lead Code</th>
+                        <th>Lead Name</th>
+                        <th>Converted Customer</th>
+                        <th>Source</th>
+                        <th>Lead Created</th>
+                        <th>Converted Date</th>
+                        <th>Days to Convert</th>
+                        <th>Converted By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in convData.Items)
+                    {
+                        <tr>
+                            <td><span class="badge bg-light text-dark border">@row.LeadCode</span></td>
+                            <td class="fw-bold">@row.LeadName</td>
+                            <td class="fw-bold text-success">@row.ConvertedCustomerName</td>
+                            <td><span class="badge bg-light text-dark border">@row.Source</span></td>
+                            <td><small>@row.LeadCreatedDate.ToString("yyyy-MM-dd")</small></td>
+                            <td><small>@row.ConvertedDate.ToString("yyyy-MM-dd")</small></td>
+                            <td><span class="badge bg-primary">@row.DaysToConvert days</span></td>
+                            <td><small>@row.ConvertedBy</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pb-3"><partial name="_Pagination" model="convData" /></div>
+    }
+    else if (curType == "activity" && Model.ReportData is List<UserActivityReportRow> actData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Sales Team Member</th>
+                        <th>Role</th>
+                        <th>Total Activities</th>
+                        <th>Calls</th>
+                        <th>Meetings</th>
+                        <th>Emails</th>
+                        <th>Tasks</th>
+                        <th>Follow-Ups Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in actData)
+                    {
+                        <tr>
+                            <td class="fw-bold">@row.UserName <div class="small text-muted">@row.Email</div></td>
+                            <td><span class="badge bg-light text-dark border">@row.Role</span></td>
+                            <td class="fw-bold text-primary">@row.TotalActivities</td>
+                            <td>@row.CallsCount</td>
+                            <td>@row.MeetingsCount</td>
+                            <td>@row.EmailsCount</td>
+                            <td>@row.TasksCount</td>
+                            <td><span class="badge bg-success">@row.FollowUpsCompleted</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (curType == "followup" && Model.ReportData is PagedResult<FollowUpReportRow> fuData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th>Related Entity</th>
+                        <th>Assigned To</th>
+                        <th>Completed Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in fuData.Items)
+                    {
+                        <tr>
+                            <td class="fw-bold">@row.Subject</td>
+                            <td><span class="badge bg-light text-dark border">@row.Type</span></td>
+                            <td><small>@row.FollowUpDate.ToString("yyyy-MM-dd HH:mm")</small></td>
+                            <td><span class="badge bg-primary">@row.Status</span></td>
+                            <td>@row.RelatedTo</td>
+                            <td><small>@row.AssignedTo</small></td>
+                            <td><small class="text-muted">@(row.CompletedDate?.ToString("yyyy-MM-dd") ?? "-")</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pb-3"><partial name="_Pagination" model="fuData" /></div>
+    }
+    else if (curType == "audit" && Model.ReportData is PagedResult<AcxiomCRM.Models.Entities.AuditLog> auditData)
+    {
+        <div class="table-responsive">
+            <table class="crm-table table mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp (UTC)</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Record ID</th>
+                        <th>Result</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in auditData.Items)
+                    {
+                        <tr>
+                            <td><small>@row.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</small></td>
+                            <td><small class="fw-semibold">@(row.UserEmail ?? "Anonymous")</small></td>
+                            <td><span class="badge bg-light text-dark border">@row.Action</span></td>
+                            <td><strong>@row.EntityName</strong></td>
+                            <td><small class="text-muted">@(row.RecordId ?? "-")</small></td>
+                            <td><span class="badge @(row.Result == "Success" ? "bg-success" : "bg-danger")">@row.Result</span></td>
+                            <td><small class="text-muted">@(row.IpAddress ?? "-")</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pb-3"><partial name="_Pagination" model="auditData" /></div>
+    }
+</div>
+

@@ -1,0 +1,204 @@
+@model AcxiomCRM.ViewModels.Common.PagedResult<AcxiomCRM.Models.Entities.AuditLog>
+@{
+    ViewData["Title"] = "Security Audit Logs";
+    Layout = "_Layout";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Security Audit Trail</h3>
+        <p class="text-secondary small mb-0">Append-only compliance log tracking data modifications, logins, and status transitions.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-controller="Reports" asp-action="Index" asp-route-reportType="audit" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-file-earmark-text"></i> Audit Report View
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">User / Email</label>
+            <input type="text" name="userId" class="form-control form-control-sm" placeholder="User ID or email address..." value="@ViewBag.UserId" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Module / Entity</label>
+            <select name="entityName" class="form-select form-select-sm">
+                <option value="">All Entities</option>
+                <option value="Customer" selected="@(ViewBag.EntityName == "Customer" ? "selected" : null)">Customer</option>
+                <option value="Lead" selected="@(ViewBag.EntityName == "Lead" ? "selected" : null)">Lead</option>
+                <option value="Opportunity" selected="@(ViewBag.EntityName == "Opportunity" ? "selected" : null)">Opportunity</option>
+                <option value="FollowUp" selected="@(ViewBag.EntityName == "FollowUp" ? "selected" : null)">FollowUp</option>
+                <option value="Activity" selected="@(ViewBag.EntityName == "Activity" ? "selected" : null)">Activity</option>
+                <option value="User" selected="@(ViewBag.EntityName == "User" ? "selected" : null)">User</option>
+                <option value="Auth" selected="@(ViewBag.EntityName == "Auth" ? "selected" : null)">Authentication</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Action</label>
+            <input type="text" name="actionName" class="form-control form-control-sm" placeholder="Create, Update, Login..." value="@ViewBag.ActionName" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">From Date</label>
+            <input type="date" name="fromDate" class="form-control form-control-sm" value="@ViewBag.FromDate" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel"></i> Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Table Card -->
+<div class="crm-card">
+    <div class="table-responsive">
+        <table class="crm-table table mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Record ID</th>
+                    <th>Result</th>
+                    <th>IP Address</th>
+                    <th class="text-end">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    foreach (var log in Model.Items)
+                    {
+                        var actionBadge = log.Action switch
+                        {
+                            "Create" => "bg-success-subtle text-success border border-success-subtle",
+                            "Update" => "bg-warning-subtle text-warning border border-warning-subtle",
+                            "Delete" => "bg-danger-subtle text-danger border border-danger-subtle",
+                            "Convert" => "bg-info-subtle text-info border border-info-subtle",
+                            "Login" => "bg-primary-subtle text-primary border border-primary-subtle",
+                            "FailedLogin" => "bg-danger text-white",
+                            _ => "bg-light text-dark border"
+                        };
+
+                        <tr>
+                            <td><small class="text-muted">@log.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</small></td>
+                            <td><small class="fw-semibold">@(log.UserEmail ?? "System / Anonymous")</small></td>
+                            <td><span class="badge @actionBadge">@log.Action</span></td>
+                            <td class="fw-bold">@log.EntityName</td>
+                            <td><small class="text-muted">@(log.RecordId ?? "-")</small></td>
+                            <td>
+                                <span class="badge @(log.Result == "Success" ? "bg-success" : "bg-danger")">
+                                    @log.Result
+                                </span>
+                            </td>
+                            <td><small class="text-muted">@(log.IpAddress ?? "-")</small></td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                        onclick="showAuditModal('@log.AuditLogId', '@log.Action', '@log.EntityName', '@log.RecordId', '@log.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")', '@(log.UserEmail ?? "N/A")', '@(log.IpAddress ?? "N/A")', `@Html.Raw(JavaScriptEscape(log.OldValue))`, `@Html.Raw(JavaScriptEscape(log.NewValue))`)"
+                                        title="View Payload">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-shield-check fs-2 d-block mb-2 text-secondary"></i>
+                            No audit logs matching current filter parameters.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-3 pb-3">
+        <partial name="_Pagination" model="Model" />
+    </div>
+</div>
+
+<!-- Audit Log Details Modal -->
+<div class="modal fade" id="auditDetailModal" tabindex="-1" aria-labelledby="auditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="auditModalLabel">
+                    <i class="bi bi-shield-check text-primary me-2"></i>Audit Log Record Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-2 mb-3 bg-light p-3 rounded small">
+                    <div class="col-md-4">
+                        <span class="text-muted d-block">Action:</span>
+                        <strong id="mAction"></strong>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted d-block">Entity & ID:</span>
+                        <strong id="mEntity"></strong> (<span id="mRecordId"></span>)
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted d-block">Timestamp (UTC):</span>
+                        <span id="mTimestamp"></span>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <span class="text-muted d-block">User:</span>
+                        <strong id="mUser"></strong>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <span class="text-muted d-block">IP Address:</span>
+                        <span id="mIp"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Old Value (Before):</label>
+                        <pre id="mOldValue" class="p-3 bg-light rounded text-dark border small" style="max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;"></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">New Value (After):</label>
+                        <pre id="mNewValue" class="p-3 bg-light rounded text-dark border small" style="max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;"></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private static string JavaScriptEscape(string? input)
+    {
+        if (string.IsNullOrEmpty(input)) return "";
+        return input.Replace("\\", "\\\\").Replace("`", "\\`").Replace("$", "\\$");
+    }
+}
+
+@section Scripts {
+    <script>
+        function showAuditModal(id, action, entity, recordId, timestamp, user, ip, oldValue, newValue) {
+            document.getElementById('mAction').textContent = action;
+            document.getElementById('mEntity').textContent = entity;
+            document.getElementById('mRecordId').textContent = recordId || '-';
+            document.getElementById('mTimestamp').textContent = timestamp;
+            document.getElementById('mUser').textContent = user;
+            document.getElementById('mIp').textContent = ip;
+
+            document.getElementById('mOldValue').textContent = oldValue || '(None)';
+            document.getElementById('mNewValue').textContent = newValue || '(None)';
+
+            const modal = new bootstrap.Modal(document.getElementById('auditDetailModal'));
+            modal.show();
+        }
+    </script>
+}
+

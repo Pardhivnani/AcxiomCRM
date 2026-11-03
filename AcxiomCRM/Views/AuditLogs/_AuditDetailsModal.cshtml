@@ -1,0 +1,36 @@
+@model AcxiomCRM.Models.Entities.AuditLog
+
+<div class="row g-2 mb-3 bg-light p-3 rounded small">
+    <div class="col-md-4">
+        <span class="text-muted d-block">Action:</span>
+        <strong class="text-primary">@Model.Action</strong>
+    </div>
+    <div class="col-md-4">
+        <span class="text-muted d-block">Entity & ID:</span>
+        <strong>@Model.EntityName</strong> (@(Model.RecordId ?? "-"))
+    </div>
+    <div class="col-md-4">
+        <span class="text-muted d-block">Timestamp (UTC):</span>
+        <span>@Model.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</span>
+    </div>
+    <div class="col-md-6 mt-2">
+        <span class="text-muted d-block">User:</span>
+        <strong>@(Model.UserEmail ?? "System / Anonymous")</strong>
+    </div>
+    <div class="col-md-6 mt-2">
+        <span class="text-muted d-block">IP Address:</span>
+        <span>@(Model.IpAddress ?? "-")</span>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label small fw-bold text-muted">Old Value (Before):</label>
+        <pre class="p-3 bg-light rounded text-dark border small" style="max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;">@(Model.OldValue ?? "(None)")</pre>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label small fw-bold text-muted">New Value (After):</label>
+        <pre class="p-3 bg-light rounded text-dark border small" style="max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;">@(Model.NewValue ?? "(None)")</pre>
+    </div>
+</div>
+

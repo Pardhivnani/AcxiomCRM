@@ -1,0 +1,211 @@
+@model AcxiomCRM.ViewModels.Common.PagedResult<AcxiomCRM.Models.Entities.Opportunity>
+@using AcxiomCRM.Models.Enums
+@{
+    ViewData["Title"] = "Opportunity Pipeline";
+    Layout = "_Layout";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Opportunity Deals Pipeline</h3>
+        <p class="text-secondary small mb-0">Track pipeline stages, deal probabilities, and revenue forecasts.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="Create" class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle-fill"></i> Add New Opportunity
+        </a>
+    </div>
+</div>
+
+<!-- Pipeline Metrics Banner -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="metric-card bg-primary-subtle border-primary-subtle">
+            <div>
+                <div class="metric-label text-primary">Total Pipeline Capital</div>
+                <div class="metric-value text-primary">$@(((decimal)ViewBag.TotalPipeline).ToString("N0"))</div>
+                <div class="metric-sub text-secondary">Active unclosed opportunities</div>
+            </div>
+            <div class="metric-icon-box bg-primary text-white">
+                <i class="bi bi-wallet-fill"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card bg-success-subtle border-success-subtle">
+            <div>
+                <div class="metric-label text-success">Weighted Pipeline Capital</div>
+                <div class="metric-value text-success">$@(((decimal)ViewBag.WeightedPipeline).ToString("N0"))</div>
+                <div class="metric-sub text-secondary">Factored by closing probability</div>
+            </div>
+            <div class="metric-icon-box bg-success text-white">
+                <i class="bi bi-calculator-fill"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card bg-light border">
+            <div>
+                <div class="metric-label text-muted">Active Pipeline Deals</div>
+                <div class="metric-value text-dark">@ViewBag.TotalCount</div>
+                <div class="metric-sub text-secondary">Deals in qualification stages</div>
+            </div>
+            <div class="metric-icon-box icon-purple">
+                <i class="bi bi-graph-up"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Search Deals</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="searchTerm" class="form-control" placeholder="Deal name, customer..." value="@ViewBag.SearchTerm" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Stage</label>
+            <select name="stage" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<OpportunityStage>()">
+                <option value="">All Stages</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Status</label>
+            <select name="status" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<OpportunityStatus>()">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Assigned Executive</label>
+            <select name="assignedToUserId" class="form-select form-select-sm" asp-items="ViewBag.SalesExecutives">
+                <option value="">All Executives</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i> Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Table Card -->
+<div class="crm-card">
+    <div class="table-responsive">
+        <table class="crm-table table mb-0">
+            <thead>
+                <tr>
+                    <th>Deal Opportunity</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Stage</th>
+                    <th>Probability</th>
+                    <th>Weighted Value</th>
+                    <th>Expected Close</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    foreach (var opp in Model.Items)
+                    {
+                        var statusBadge = opp.Status switch
+                        {
+                            OpportunityStatus.Won => "badge-won",
+                            OpportunityStatus.Lost => "badge-lost",
+                            _ => "badge-active"
+                        };
+
+                        <tr>
+                            <td class="fw-bold">
+                                <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none text-dark">
+                                    @opp.OpportunityName
+                                </a>
+                            </td>
+                            <td>
+                                @if (opp.Customer != null)
+                                {
+                                    <a asp-controller="Customers" asp-action="Details" asp-route-id="@opp.CustomerId" class="text-decoration-none">
+                                        @opp.Customer.CustomerName
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td class="fw-bold text-dark">$@opp.Amount.ToString("N0")</td>
+                            <td><span class="badge bg-light text-dark border">@opp.Stage</span></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1">
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @opp.Probability%;"></div>
+                                    </div>
+                                    <small class="text-muted">@opp.Probability%</small>
+                                </div>
+                            </td>
+                            <td class="fw-semibold text-primary">$@opp.WeightedPipeline.ToString("N0")</td>
+                            <td><small class="text-muted">@opp.ExpectedCloseDate.ToString("yyyy-MM-dd")</small></td>
+                            <td>
+                                <span class="badge-status @statusBadge">
+                                    <span class="badge-status-dot"></span>
+                                    @opp.Status
+                                </span>
+                            </td>
+                            <td><small class="fw-semibold">@(opp.AssignedTo?.FullName ?? "Unassigned")</small></td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border py-0 px-2" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <a class="dropdown-item py-1" asp-action="Details" asp-route-id="@opp.OpportunityId">
+                                                <i class="bi bi-eye text-primary me-2"></i> View Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-1" asp-action="Edit" asp-route-id="@opp.OpportunityId">
+                                                <i class="bi bi-pencil text-warning me-2"></i> Edit
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button type="button" class="dropdown-item py-1 text-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteConfirmModal"
+                                                    data-record-name="@opp.OpportunityName"
+                                                    data-delete-url="@Url.Action("Delete", "Opportunities", new { id = opp.OpportunityId })">
+                                                <i class="bi bi-trash me-2"></i> Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-5">
+                            <i class="bi bi-briefcase fs-2 d-block mb-2 text-secondary"></i>
+                            No opportunities found matching the specified filters.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-3 pb-3">
+        <partial name="_Pagination" model="Model" />
+    </div>
+</div>
+

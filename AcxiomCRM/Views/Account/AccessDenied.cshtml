@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-md-6 text-center">
+        <div class="display-1 text-danger mb-3">
+            <i class="bi bi-shield-x"></i>
+        </div>
+        <h2 class="fw-bold text-dark">Access Denied</h2>
+        <p class="text-secondary lead mt-2 mb-4">
+            You do not have the required role permissions to access this CRM module or record.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary px-4">Return to Dashboard</a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary px-4">Go Back</a>
+        </div>
+    </div>
+</div>
+

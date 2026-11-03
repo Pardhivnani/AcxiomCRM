@@ -1,0 +1,167 @@
+@model AcxiomCRM.ViewModels.Common.PagedResult<AcxiomCRM.ViewModels.Users.UserItemViewModel>
+@using AcxiomCRM.Models.Enums
+@{
+    ViewData["Title"] = "User & Role Management";
+    Layout = "_Layout";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">User & Role Administration</h3>
+        <p class="text-secondary small mb-0">Manage CRM user accounts, assign role permissions, and reset credentials.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="Create" class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-person-plus-fill"></i> Add New User
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Search Users</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="searchTerm" class="form-control" placeholder="Name, Email..." value="@ViewBag.SearchTerm" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Role</label>
+            <select name="role" class="form-select form-select-sm" asp-items="ViewBag.RolesList">
+                <option value="">All Roles</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Status</label>
+            <select name="isActive" class="form-select form-select-sm">
+                <option value="">All Accounts</option>
+                <option value="true" selected="@(ViewBag.IsActive == true ? "selected" : null)">Active Accounts Only</option>
+                <option value="false" selected="@(ViewBag.IsActive == false ? "selected" : null)">Deactivated Only</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i> Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Table Card -->
+<div class="crm-card">
+    <div class="table-responsive">
+        <table class="crm-table table mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Manager / Reports To</th>
+                    <th>Account Status</th>
+                    <th>Lockout</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    foreach (var u in Model.Items)
+                    {
+                        var roleBadge = u.Role switch
+                        {
+                            UserRoles.Admin => "role-admin",
+                            UserRoles.Manager => "role-manager",
+                            _ => "role-sales"
+                        };
+
+                        <tr>
+                            <td class="fw-bold">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                        @u.FullName[0].ToString().ToUpper()
+                                    </div>
+                                    <span>@u.FullName</span>
+                                </div>
+                            </td>
+                            <td><small>@u.Email</small></td>
+                            <td><span class="role-pill @roleBadge">@u.Role</span></td>
+                            <td>@(u.Department ?? "-")</td>
+                            <td><small class="text-muted">@(u.ManagerName ?? "-")</small></td>
+                            <td>
+                                <span class="badge @(u.IsActive ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger border border-danger-subtle")">
+                                    @(u.IsActive ? "Active" : "Deactivated")
+                                </span>
+                            </td>
+                            <td>
+                                @if (u.IsLockedOut)
+                                {
+                                    <span class="badge bg-danger">Locked Out</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-muted border">Normal</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border py-0 px-2" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <a class="dropdown-item py-1" asp-action="Edit" asp-route-id="@u.Id">
+                                                <i class="bi bi-pencil text-warning me-2"></i> Edit User
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-1" asp-action="ResetPassword" asp-route-id="@u.Id">
+                                                <i class="bi bi-key text-primary me-2"></i> Reset Password
+                                            </a>
+                                        </li>
+                                        @if (u.IsLockedOut)
+                                        {
+                                            <li>
+                                                <form asp-action="Unlock" asp-route-id="@u.Id" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="dropdown-item py-1 text-success">
+                                                        <i class="bi bi-unlock me-2"></i> Unlock Account
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-action="ToggleActive" asp-route-id="@u.Id" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item py-1 @(u.IsActive ? "text-danger" : "text-success")">
+                                                    <i class="bi @(u.IsActive ? "bi-person-x" : "bi-person-check") me-2"></i>
+                                                    @(u.IsActive ? "Deactivate Account" : "Activate Account")
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-people fs-2 d-block mb-2 text-secondary"></i>
+                            No users found matching search criteria.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-3 pb-3">
+        <partial name="_Pagination" model="Model" />
+    </div>
+</div>
+

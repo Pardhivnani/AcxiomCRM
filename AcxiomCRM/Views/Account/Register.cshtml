@@ -1,0 +1,68 @@
+@model AcxiomCRM.ViewModels.Account.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark mb-1">Create an Account</h3>
+            <p class="text-secondary" style="font-size: 0.9rem;">Join the AcxiomCRM Workspace</p>
+        </div>
+
+        <div class="crm-card shadow-sm border-0">
+            <div class="crm-card-body p-4">
+                <form asp-action="Register" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label fw-semibold" style="font-size: 0.88rem;">Full Name</label>
+                        <input asp-for="FullName" class="form-control" placeholder="e.g. John Doe" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold" style="font-size: 0.88rem;">Email Address</label>
+                        <input asp-for="Email" class="form-control" placeholder="john@company.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Department" class="form-label fw-semibold" style="font-size: 0.88rem;">Department (Optional)</label>
+                        <input asp-for="Department" class="form-control" placeholder="e.g. Direct Sales, Account Management" />
+                        <span asp-validation-for="Department" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold" style="font-size: 0.88rem;">Password</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold" style="font-size: 0.88rem;">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">Register Account</button>
+                </form>
+
+                <div class="mt-4 pt-3 border-top text-center">
+                    <p class="text-muted small mb-0">
+                        Already have an account? <a asp-action="Login" class="text-primary text-decoration-none fw-semibold">Sign in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

@@ -1,0 +1,167 @@
+@model AcxiomCRM.ViewModels.Common.PagedResult<AcxiomCRM.Models.Entities.Activity>
+@using AcxiomCRM.Models.Enums
+@{
+    ViewData["Title"] = "Activities Tracker";
+    Layout = "_Layout";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Sales Activities</h3>
+        <p class="text-secondary small mb-0">Record and review client calls, meetings, emails, and follow-up tasks.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="Create" class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle-fill"></i> Log Activity
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Search</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="searchTerm" class="form-control" placeholder="Subject, description, client..." value="@ViewBag.SearchTerm" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Type</label>
+            <select name="type" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<ActivityType>()">
+                <option value="">All Types</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Status</label>
+            <select name="status" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<ActivityStatus>()">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Assigned Executive</label>
+            <select name="assignedToUserId" class="form-select form-select-sm" asp-items="ViewBag.SalesExecutives">
+                <option value="">All Executives</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel"></i> Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Table Card -->
+<div class="crm-card">
+    <div class="table-responsive">
+        <table class="crm-table table mb-0">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Subject & Summary</th>
+                    <th>Associated With</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    foreach (var a in Model.Items)
+                    {
+                        var typeIcon = a.ActivityType switch
+                        {
+                            ActivityType.Call => "bi-telephone-fill text-success",
+                            ActivityType.Meeting => "bi-people-fill text-primary",
+                            ActivityType.Email => "bi-envelope-fill text-info",
+                            _ => "bi-check2-square text-warning"
+                        };
+
+                        var statusClass = a.Status switch
+                        {
+                            ActivityStatus.Completed => "badge-active",
+                            ActivityStatus.InProgress => "badge-qualified",
+                            ActivityStatus.Cancelled => "badge-lost",
+                            _ => "badge-inactive"
+                        };
+
+                        <tr>
+                            <td>
+                                <span class="d-inline-flex align-items-center gap-1 badge bg-light text-dark border">
+                                    <i class="bi @typeIcon"></i> @a.ActivityType
+                                </span>
+                            </td>
+                            <td class="fw-bold">
+                                <a asp-action="Details" asp-route-id="@a.ActivityId" class="text-decoration-none text-dark hover-primary">
+                                    @a.Subject
+                                </a>
+                                @if (!string.IsNullOrWhiteSpace(a.Description))
+                                {
+                                    <div class="small text-muted text-truncate" style="max-width: 320px;">@a.Description</div>
+                                }
+                            </td>
+                            <td>
+                                @if (a.Customer != null)
+                                {
+                                    <a asp-controller="Customers" asp-action="Details" asp-route-id="@a.CustomerId" class="text-decoration-none">
+                                        <i class="bi bi-building me-1"></i>@a.Customer.CustomerName
+                                    </a>
+                                }
+                                else if (a.Lead != null)
+                                {
+                                    <a asp-controller="Leads" asp-action="Details" asp-route-id="@a.LeadId" class="text-decoration-none">
+                                        <i class="bi bi-person me-1"></i>@a.Lead.LeadName
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td><small class="text-muted">@a.ActivityDate.ToString("yyyy-MM-dd HH:mm")</small></td>
+                            <td>
+                                <span class="badge-status @statusClass">
+                                    <span class="badge-status-dot"></span>
+                                    @a.Status
+                                </span>
+                            </td>
+                            <td><small class="fw-semibold">@(a.AssignedTo?.FullName ?? "-")</small></td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@a.ActivityId" class="btn btn-sm btn-outline-info py-0 px-2" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@a.ActivityId" class="btn btn-sm btn-outline-primary py-0 px-2 ms-1" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 ms-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteConfirmModal"
+                                        data-record-name="@a.Subject"
+                                        data-delete-url="@Url.Action("Delete", "Activities", new { id = a.ActivityId })">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-list-task fs-2 d-block mb-2 text-secondary"></i>
+                            No activities found matching criteria.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-3 pb-3">
+        <partial name="_Pagination" model="Model" />
+    </div>
+</div>
+

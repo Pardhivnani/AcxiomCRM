@@ -1,0 +1,142 @@
+@model AcxiomCRM.ViewModels.Common.PagedResult<AcxiomCRM.Models.Entities.Customer>
+@using AcxiomCRM.Models.Enums
+@{
+    ViewData["Title"] = "Customer Management";
+    Layout = "_Layout";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Customer Management</h3>
+        <p class="text-secondary small mb-0">Manage customer accounts, portfolios, and account executives.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="Create" class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-person-plus-fill"></i> Add Customer
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Search Customers</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="searchTerm" class="form-control" placeholder="Name, Code, Email, Phone, Company..." value="@ViewBag.SearchTerm" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Status</label>
+            <select name="status" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<CustomerStatus>()">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Assigned Executive</label>
+            <select name="assignedToUserId" class="form-select form-select-sm" asp-items="ViewBag.SalesExecutives">
+                <option value="">All Executives</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i> Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Table Card -->
+<div class="crm-card">
+    <div class="table-responsive">
+        <table class="crm-table table mb-0">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Customer Name</th>
+                    <th>Email & Phone</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    foreach (var c in Model.Items)
+                    {
+                        var statusBadge = c.Status == CustomerStatus.Active ? "badge-active" : "badge-inactive";
+                        <tr>
+                            <td><span class="badge bg-light text-dark border fw-bold">@c.CustomerCode</span></td>
+                            <td class="fw-bold">
+                                <a asp-action="Details" asp-route-id="@c.CustomerId" class="text-decoration-none text-dark">
+                                    @c.CustomerName
+                                </a>
+                            </td>
+                            <td>
+                                <div><small class="text-dark"><i class="bi bi-envelope me-1 text-muted"></i>@c.Email</small></div>
+                                <div><small class="text-muted"><i class="bi bi-telephone me-1 text-muted"></i>@c.Phone</small></div>
+                            </td>
+                            <td>@(c.CompanyName ?? "-")</td>
+                            <td>
+                                <span class="badge-status @statusBadge">
+                                    <span class="badge-status-dot"></span>
+                                    @c.Status
+                                </span>
+                            </td>
+                            <td>
+                                <small class="fw-semibold">@(c.AssignedTo?.FullName ?? "Unassigned")</small>
+                            </td>
+                            <td><small class="text-muted">@c.CreatedDate.ToString("MMM dd, yyyy")</small></td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border py-0 px-2" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <a class="dropdown-item py-1" asp-action="Details" asp-route-id="@c.CustomerId">
+                                                <i class="bi bi-eye text-primary me-2"></i> View Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-1" asp-action="Edit" asp-route-id="@c.CustomerId">
+                                                <i class="bi bi-pencil text-warning me-2"></i> Edit
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button type="button" class="dropdown-item py-1 text-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteConfirmModal"
+                                                    data-record-name="@c.CustomerName"
+                                                    data-delete-url="@Url.Action("Delete", "Customers", new { id = c.CustomerId })">
+                                                <i class="bi bi-trash me-2"></i> Delete / Deactivate
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                            No customers found matching the specified filters.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-3 pb-3">
+        <partial name="_Pagination" model="Model" />
+    </div>
+</div>
+

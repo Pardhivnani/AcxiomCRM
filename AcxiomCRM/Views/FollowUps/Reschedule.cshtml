@@ -1,0 +1,59 @@
+@model AcxiomCRM.ViewModels.FollowUp.FollowUpRescheduleViewModel
+@{
+    ViewData["Title"] = $"Reschedule Follow-Up - {Model.Subject}";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i></a>
+            <h4 class="fw-bold text-dark mb-0">Reschedule Follow-Up</h4>
+        </div>
+
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-clock-history me-2 text-warning"></i>Select New Date & Time</span>
+            </div>
+            <div class="crm-card-body p-4">
+                <form asp-action="Reschedule" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="FollowUpId" />
+                    <input type="hidden" asp-for="Subject" />
+                    <input type="hidden" asp-for="CurrentDate" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <small class="text-muted d-block">Follow-Up Subject:</small>
+                        <strong class="text-dark">@Model.Subject</strong>
+                        <div class="small text-muted mt-1">Currently scheduled for: <strong>@Model.CurrentDate.ToString("yyyy-MM-dd HH:mm")</strong></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewDate" class="form-label fw-semibold small"></label> <span class="text-danger">*</span>
+                        <input asp-for="NewDate" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="NewDate" class="text-danger small"></span>
+                        <div class="form-text small">Follow-up date cannot be earlier than today.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Remarks" class="form-label fw-semibold small"></label>
+                        <textarea asp-for="Remarks" rows="3" class="form-control" placeholder="Reason for rescheduling (client request, calendar conflict)..."></textarea>
+                        <span asp-validation-for="Remarks" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-calendar-check me-1"></i> Confirm Reschedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

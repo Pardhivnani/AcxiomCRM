@@ -1,0 +1,113 @@
+@model AcxiomCRM.ViewModels.Opportunity.OpportunityCreateEditViewModel
+@using AcxiomCRM.Models.Enums
+@{
+    ViewData["Title"] = $"Edit Opportunity - {Model.OpportunityName}";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <a asp-action="Details" asp-route-id="@Model.OpportunityId" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i></a>
+            <h4 class="fw-bold text-dark mb-0">Edit Opportunity: @Model.OpportunityName</h4>
+        </div>
+
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <span class="crm-card-title"><i class="bi bi-pencil-square me-2 text-warning"></i>Modify Opportunity Deal</span>
+            </div>
+            <div class="crm-card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="OpportunityId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="OpportunityName" class="form-label fw-semibold small"></label> <span class="text-danger">*</span>
+                            <input asp-for="OpportunityName" class="form-control" />
+                            <span asp-validation-for="OpportunityName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CustomerId" class="form-label fw-semibold small"></label> <span class="text-danger">*</span>
+                            <select asp-for="CustomerId" class="form-select" asp-items="Model.CustomersList">
+                                <option value="">-- Select Customer Account --</option>
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="LeadId" class="form-label fw-semibold small"></label>
+                            <select asp-for="LeadId" class="form-select" asp-items="Model.LeadsList">
+                                <option value="">-- Associated Lead (Optional) --</option>
+                            </select>
+                            <span asp-validation-for="LeadId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Amount" class="form-label fw-semibold small"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Amount" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <span asp-validation-for="Amount" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Probability" class="form-label fw-semibold small"></label>
+                            <div class="input-group">
+                                <input asp-for="Probability" type="number" min="0" max="100" class="form-control" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <span asp-validation-for="Probability" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Stage" class="form-label fw-semibold small">Pipeline Stage</label>
+                            <select asp-for="Stage" class="form-select" asp-items="Html.GetEnumSelectList<OpportunityStage>()"></select>
+                            <span asp-validation-for="Stage" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Status" class="form-label fw-semibold small">Deal Status</label>
+                            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<OpportunityStatus>()"></select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ExpectedCloseDate" class="form-label fw-semibold small"></label> <span class="text-danger">*</span>
+                            <input asp-for="ExpectedCloseDate" type="date" class="form-control" />
+                            <span asp-validation-for="ExpectedCloseDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="AssignedToUserId" class="form-label fw-semibold small"></label> <span class="text-danger">*</span>
+                            <select asp-for="AssignedToUserId" class="form-select" asp-items="Model.SalesExecutivesList">
+                                <option value="">-- Select Owner --</option>
+                            </select>
+                            <span asp-validation-for="AssignedToUserId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label fw-semibold small">Strategic Notes / Proposal Details</label>
+                            <textarea asp-for="Notes" rows="3" class="form-control"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Details" asp-route-id="@Model.OpportunityId" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i> Update Opportunity</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

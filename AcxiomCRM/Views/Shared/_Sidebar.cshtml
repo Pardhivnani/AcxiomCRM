@@ -1,0 +1,111 @@
+@using AcxiomCRM.Models.Enums
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<aside class="crm-sidebar" id="crmSidebar">
+    <a asp-controller="Dashboard" asp-action="Index" class="sidebar-brand">
+        <div class="sidebar-brand-badge">A</div>
+        <div>
+            <div style="font-weight: 800; letter-spacing: -0.02em;">AcxiomCRM</div>
+            <div style="font-size: 0.7rem; font-weight: 500; color: #94a3b8; letter-spacing: 0.05em;">ENTERPRISE CRM</div>
+        </div>
+    </a>
+
+    <ul class="sidebar-menu">
+        <li class="sidebar-heading">Core</li>
+
+        <li class="sidebar-item">
+            <a asp-controller="Dashboard" asp-action="Index" class="sidebar-link @(currentController == "Dashboard" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <li class="sidebar-heading">CRM Operations</li>
+
+        <li class="sidebar-item">
+            <a asp-controller="Customers" asp-action="Index" class="sidebar-link @(currentController == "Customers" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-people-fill"></i></span>
+                <span>Customers</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a asp-controller="Leads" asp-action="Index" class="sidebar-link @(currentController == "Leads" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-funnel-fill"></i></span>
+                <span>Leads</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a asp-controller="Opportunities" asp-action="Index" class="sidebar-link @(currentController == "Opportunities" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-briefcase-fill"></i></span>
+                <span>Opportunities</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a asp-controller="FollowUps" asp-action="Index" class="sidebar-link @(currentController == "FollowUps" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-calendar-check-fill"></i></span>
+                <span>Follow-Ups</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a asp-controller="Activities" asp-action="Index" class="sidebar-link @(currentController == "Activities" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-list-task"></i></span>
+                <span>Activities</span>
+            </a>
+        </li>
+
+        <li class="sidebar-heading">Intelligence</li>
+
+        <li class="sidebar-item">
+            <a asp-controller="Reports" asp-action="Index" class="sidebar-link @(currentController == "Reports" ? "active" : "")">
+                <span class="sidebar-icon"><i class="bi bi-bar-chart-line-fill"></i></span>
+                <span>Reports</span>
+            </a>
+        </li>
+
+        @if (User.IsInRole(UserRoles.Admin))
+        {
+            <li class="sidebar-heading">Administration</li>
+
+            <li class="sidebar-item">
+                <a asp-controller="Users" asp-action="Index" class="sidebar-link @(currentController == "Users" ? "active" : "")">
+                    <span class="sidebar-icon"><i class="bi bi-person-gear"></i></span>
+                    <span>User Management</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a asp-controller="AuditLogs" asp-action="Index" class="sidebar-link @(currentController == "AuditLogs" ? "active" : "")">
+                    <span class="sidebar-icon"><i class="bi bi-shield-check"></i></span>
+                    <span>Audit Logs</span>
+                </a>
+            </li>
+        }
+
+        <li class="sidebar-heading">Developer</li>
+        <li class="sidebar-item">
+            <a href="/swagger" target="_blank" class="sidebar-link">
+                <span class="sidebar-icon"><i class="bi bi-code-slash"></i></span>
+                <span>REST API Docs</span>
+                <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">OpenAPI</span>
+            </a>
+        </li>
+    </ul>
+
+    <div style="padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08);">
+        <form asp-controller="Account" asp-action="Logout" method="post" id="sidebarLogoutForm">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-secondary btn-sm w-100 text-start text-white d-flex align-items-center gap-2 border-0" style="background: rgba(255,255,255,0.05);">
+                <i class="bi bi-box-arrow-right text-danger"></i>
+                <span>Logout</span>
+            </button>
+        </form>
+    </div>
+</aside>
+

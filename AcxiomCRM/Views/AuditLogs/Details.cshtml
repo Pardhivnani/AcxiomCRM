@@ -1,0 +1,95 @@
+@model AcxiomCRM.Models.Entities.AuditLog
+@{
+    ViewData["Title"] = $"Audit Log Entry #{Model.AuditLogId}";
+    Layout = "_Layout";
+
+    var actionBadge = Model.Action switch
+    {
+        "Create" => "bg-success-subtle text-success border border-success-subtle",
+        "Update" => "bg-warning-subtle text-warning border border-warning-subtle",
+        "Delete" => "bg-danger-subtle text-danger border border-danger-subtle",
+        "Convert" => "bg-info-subtle text-info border border-info-subtle",
+        "Login" => "bg-primary-subtle text-primary border border-primary-subtle",
+        "FailedLogin" => "bg-danger text-white",
+        _ => "bg-light text-dark border"
+    };
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-action="Index">Audit Logs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Log #@Model.AuditLogId</li>
+            </ol>
+        </nav>
+        <div class="d-flex align-items-center gap-3">
+            <h3 class="fw-bold text-dark mb-0">Audit Record #@Model.AuditLogId</h3>
+            <span class="badge @actionBadge">@Model.Action</span>
+            <span class="badge @(Model.Result == "Success" ? "bg-success" : "bg-danger")">@Model.Result</span>
+        </div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Audit Trail
+        </a>
+    </div>
+</div>
+
+<div class="crm-card mb-4">
+    <div class="crm-card-header">
+        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Audit Event Context</h6>
+    </div>
+    <div class="crm-card-body">
+        <div class="row g-3">
+            <div class="col-sm-4">
+                <label class="text-secondary small fw-semibold">Entity Type</label>
+                <div class="fw-bold fs-6 text-dark">@Model.EntityName</div>
+            </div>
+            <div class="col-sm-4">
+                <label class="text-secondary small fw-semibold">Record Key / Identifier</label>
+                <div class="fw-bold fs-6 text-dark">@(Model.RecordId ?? "-")</div>
+            </div>
+            <div class="col-sm-4">
+                <label class="text-secondary small fw-semibold">Event Timestamp (UTC)</label>
+                <div class="text-muted">@Model.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</div>
+            </div>
+            <div class="col-sm-4">
+                <label class="text-secondary small fw-semibold">User Account</label>
+                <div class="fw-semibold text-dark">@(Model.UserEmail ?? "System / Anonymous")</div>
+            </div>
+            <div class="col-sm-4">
+                <label class="text-secondary small fw-semibold">User ID</label>
+                <div class="text-muted small text-truncate">@(Model.UserId ?? "-")</div>
+            </div>
+            <div class="col-sm-4">
+                <label class="text-secondary small fw-semibold">Client IP Address</label>
+                <div class="text-muted">@(Model.IpAddress ?? "-")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <h6 class="mb-0 fw-bold text-secondary">Old Value (Before Modification)</h6>
+            </div>
+            <div class="crm-card-body">
+                <pre class="p-3 bg-light rounded text-dark border small" style="min-height: 200px; white-space: pre-wrap; word-break: break-all;">@(Model.OldValue ?? "(None)")</pre>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <h6 class="mb-0 fw-bold text-primary">New Value (After Modification)</h6>
+            </div>
+            <div class="crm-card-body">
+                <pre class="p-3 bg-light rounded text-dark border small" style="min-height: 200px; white-space: pre-wrap; word-break: break-all;">@(Model.NewValue ?? "(None)")</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
